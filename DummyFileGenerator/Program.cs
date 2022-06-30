@@ -20,7 +20,7 @@ namespace DummyFileGenerator
             Random rnd = new Random();
             if (sizeStr.Contains("~"))
             {
-                s = int.Parse(sizeStr.Trim().Split('~')[0]);
+                s = int.Parse(Regex.Match(sizeStr.Trim().Split('~')[0], @"\d+").Value);
                 e = int.Parse(Regex.Match(sizeStr.Trim().Split('~')[1], @"\d+").Value);
             }
             else
@@ -44,15 +44,15 @@ namespace DummyFileGenerator
 
         private static long MultipleByUnit(long actualSize, string sizeStr)
         {
-            if (sizeStr.Contains("K"))
+            if (sizeStr.Contains("K") || sizeStr.Contains("k"))
             {
                 actualSize *= 1024;
             }
-            else if (sizeStr.Contains("M"))
+            else if (sizeStr.Contains("M") || sizeStr.Contains("m"))
             {
                 actualSize *= 1024 * 1024;
             }
-            else if (sizeStr.Contains("G"))
+            else if (sizeStr.Contains("G") || sizeStr.Contains("g"))
             {
                 actualSize *= 1024 * 1024 * 1024;
             }
