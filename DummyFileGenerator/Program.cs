@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -35,11 +37,30 @@ namespace DummyFileGenerator
                        byte[] data = new byte[s != 0 ? MultipleByUnit(new Random(i).Next(s, e), sizeStr) : MultipleByUnit(actualSize, sizeStr)];
                        Random rng = new Random(Guid.NewGuid().GetHashCode());
                        rng.NextBytes(data);
-                       File.WriteAllBytes($@"{dir}\dummy{i + 1}", data);
+                       var sha256AsFileName = ComputeSha256Hash(data);
+                       File.WriteAllBytes($@"{dir}\{sha256AsFileName.ToUpper()}.dat", data);
                    });
 
             Console.WriteLine("Finished");
             Console.ReadLine();
+        }
+
+        private static string ComputeSha256Hash(byte[] rawData)
+        {
+            // Create a SHA256   
+            using (SHA256CryptoServiceProvider sha256Hash = new SHA256CryptoServiceProvider())
+            {
+                // ComputeHash - returns byte array  
+                byte[] bytes = sha256Hash.ComputeHash(rawData);
+
+                // Convert byte array to a string   
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
         }
 
         private static long MultipleByUnit(long actualSize, string sizeStr)
