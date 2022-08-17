@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,7 +18,7 @@ namespace DummyFileGenerator
             Console.WriteLine("Size?");
             string sizeStr = Console.ReadLine();
 
-            long actualSize = 0;
+            long specificSize = 0;
             int s = 0, e = 0;
             Random rnd = new Random();
             if (sizeStr.Contains("~"))
@@ -26,7 +27,7 @@ namespace DummyFileGenerator
                 e = int.Parse(Regex.Match(sizeStr.Trim().Split('~')[1], @"\d+").Value);
             }
             else
-                actualSize = long.Parse(Regex.Match(sizeStr, @"\d+").Value);
+                specificSize = long.Parse(Regex.Match(sizeStr, @"\d+").Value);
 
             Console.WriteLine("Generate to?");
             string dir = Console.ReadLine();
@@ -34,18 +35,42 @@ namespace DummyFileGenerator
             Parallel.For(0, howMany,
                    i =>
                    {
-                       byte[] data = new byte[s != 0 ? MultipleByUnit(new Random(i).Next(s, e), sizeStr) : MultipleByUnit(actualSize, sizeStr)];
-                       Random rng = new Random(Guid.NewGuid().GetHashCode());
-                       rng.NextBytes(data);
-                       var sha256AsFileName = ComputeSha256Hash(data);
-                       File.WriteAllBytes($@"{dir}\{sha256AsFileName.ToUpper()}.dat", data);
+                       long actualSize = s != 0 ? MultipleByUnit(new Random(i).Next(s, e), sizeStr) : MultipleByUnit(specificSize, sizeStr);
+                       long howManyPiece = 0, remainder = 0;
+                       int arrayMaxSize = 1024 * 1024;
+                       if (actualSize > arrayMaxSize)
+                       {
+                           howManyPiece = actualSize / arrayMaxSize;
+                           remainder = actualSize % arrayMaxSize;
+                       }
+                       using (FileStream fileStream = new FileStream($@"{dir}\dfg{i}.dat", FileMode.Create, FileAccess.Write))
+                       {
+                           Random rng = new Random(Guid.NewGuid().GetHashCode());
+
+                           for (int j = 0; j < howManyPiece; j++)
+                           {
+                               byte[] temp = new byte[arrayMaxSize];
+                               rnd.NextBytes(temp);
+                               fileStream.Write(temp, 0, arrayMaxSize);
+                           }
+                           byte[] temp2 = new byte[remainder];
+                           rnd.NextBytes(temp2);
+                           fileStream.Write(temp2, 0, temp2.Length);
+                       }
+
+                       string sha256AsFileName;
+                       using (FileStream fsSource = new FileStream($@"{dir}\dfg{i}.dat", FileMode.Open, FileAccess.Read))
+                       {
+                           sha256AsFileName = ComputeSha256Hash(fsSource);
+                       }
+                       File.Move($@"{dir}\dfg{i}.dat", $@"{dir}\{sha256AsFileName.ToUpper()}.dat");
                    });
 
             Console.WriteLine("Finished");
             Console.ReadLine();
         }
 
-        private static string ComputeSha256Hash(byte[] rawData)
+        private static string ComputeSha256Hash(Stream rawData)
         {
             // Create a SHA256   
             using (SHA256CryptoServiceProvider sha256Hash = new SHA256CryptoServiceProvider())
