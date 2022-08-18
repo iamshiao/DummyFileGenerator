@@ -35,6 +35,7 @@ namespace DummyFileGenerator
             Parallel.For(0, howMany,
                    i =>
                    {
+                       Guid guid = Guid.NewGuid();
                        long actualSize = s != 0 ? MultipleByUnit(new Random(i).Next(s, e), sizeStr) : MultipleByUnit(specificSize, sizeStr);
                        long howManyPiece = 0, remainder = 0;
                        int arrayMaxSize = 1024 * 1024;
@@ -43,7 +44,7 @@ namespace DummyFileGenerator
                            howManyPiece = actualSize / arrayMaxSize;
                            remainder = actualSize % arrayMaxSize;
                        }
-                       using (FileStream fileStream = new FileStream($@"{dir}\dfg{i}.dat", FileMode.Create, FileAccess.Write))
+                       using (FileStream fileStream = new FileStream($@"{dir}\{guid.ToString()}.dat", FileMode.Create, FileAccess.Write))
                        {
                            Random rng = new Random(Guid.NewGuid().GetHashCode());
 
@@ -59,11 +60,11 @@ namespace DummyFileGenerator
                        }
 
                        string sha256AsFileName;
-                       using (FileStream fsSource = new FileStream($@"{dir}\dfg{i}.dat", FileMode.Open, FileAccess.Read))
+                       using (FileStream fsSource = new FileStream($@"{dir}\{guid.ToString()}.dat", FileMode.Open, FileAccess.Read))
                        {
                            sha256AsFileName = ComputeSha256Hash(fsSource);
                        }
-                       File.Move($@"{dir}\dfg{i}.dat", $@"{dir}\{sha256AsFileName.ToUpper()}.dat");
+                       File.Move($@"{dir}\{guid.ToString()}.dat", $@"{dir}\{sha256AsFileName.ToUpper()}.dat");
                    });
 
             Console.WriteLine("Finished");
