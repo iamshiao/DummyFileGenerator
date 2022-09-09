@@ -37,7 +37,7 @@ namespace DummyFileGenerator
                    {
                        Guid guid = Guid.NewGuid();
                        long actualSize = s != 0 ? MultipleByUnit(new Random(i).Next(s, e), sizeStr) : MultipleByUnit(specificSize, sizeStr);
-                       long howManyPiece = 0, remainder = 0;
+                       long howManyPiece = 0, remainder = actualSize;
                        int arrayMaxSize = 1024 * 1024;
                        if (actualSize > arrayMaxSize)
                        {
@@ -46,7 +46,7 @@ namespace DummyFileGenerator
                        }
                        using (FileStream fileStream = new FileStream($@"{dir}\{guid.ToString()}.dat", FileMode.Create, FileAccess.Write))
                        {
-                           Random rng = new Random(Guid.NewGuid().GetHashCode());
+                           Random rng = new Random(i);
 
                            for (int j = 0; j < howManyPiece; j++)
                            {
