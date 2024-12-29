@@ -20,7 +20,7 @@ namespace DummyFileGenerator
 
             long specificSize = 0;
             int s = 0, e = 0;
-            Random rnd = new Random();
+            
             if (sizeStr.Contains("~"))
             {
                 s = int.Parse(Regex.Match(sizeStr.Trim().Split('~')[0], @"\d+").Value);
@@ -36,7 +36,7 @@ namespace DummyFileGenerator
                    i =>
                    {
                        Guid guid = Guid.NewGuid();
-                       long actualSize = s != 0 ? MultipleByUnit(new Random(i).Next(s, e), sizeStr) : MultipleByUnit(specificSize, sizeStr);
+                       long actualSize = s != 0 ? MultipleByUnit(new Random(Guid.NewGuid().GetHashCode()).Next(s, e), sizeStr) : MultipleByUnit(specificSize, sizeStr);
                        long howManyPiece = 0, remainder = actualSize;
                        int arrayMaxSize = 1024 * 1024;
                        if (actualSize > arrayMaxSize)
@@ -46,16 +46,14 @@ namespace DummyFileGenerator
                        }
                        using (FileStream fileStream = new FileStream($@"{dir}\{guid.ToString()}.dat", FileMode.Create, FileAccess.Write))
                        {
-                           Random rng = new Random(i);
-
                            for (int j = 0; j < howManyPiece; j++)
                            {
                                byte[] temp = new byte[arrayMaxSize];
-                               rnd.NextBytes(temp);
+                               new Random(Guid.NewGuid().GetHashCode()).NextBytes(temp);
                                fileStream.Write(temp, 0, arrayMaxSize);
                            }
                            byte[] temp2 = new byte[remainder];
-                           rnd.NextBytes(temp2);
+                           new Random(Guid.NewGuid().GetHashCode()).NextBytes(temp2);
                            fileStream.Write(temp2, 0, temp2.Length);
                        }
 
